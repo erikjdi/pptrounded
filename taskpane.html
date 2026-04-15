@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hoekradius</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <style>
+    :root {
+      /* Groen palet: basis #66ccb5 */
+      --green-light:  #e8f8f5;   /* lichte achtergrond tint */
+      --green-soft:   #b3e8dd;   /* rand / subtiele accenten */
+      --green-base:   #66ccb5;   /* hoofd accentkleur */
+      --green-deep:   #3daa96;   /* hover */
+      --green-darker: #2a7d6e;   /* actieve staat */
+
+      /* Donker palet: basis #212b33 */
+      --dark-base:    #212b33;   /* tekst / koptekst */
+      --dark-mid:     #3a4a57;   /* muted tekst */
+      --dark-light:   #5a6e7e;   /* placeholder / hint */
+      --dark-border:  #d0d8de;   /* randen op witte achtergrond */
+      --dark-surface: #f0f3f5;   /* lichte oppervlakken */
+
+      --bg: #ffffff;
+      --surface: var(--dark-surface);
+      --border: var(--dark-border);
+      --text: var(--dark-base);
+      --muted: var(--dark-light);
+      --accent: var(--green-base);
+      --accent-light: var(--green-light);
+      --accent-hover: var(--green-deep);
+      --warning-bg: #fff8e6;
+      --warning-border: #f0c060;
+      --warning-text: #6b4d00;
+      --danger: #c0392b;
+      --radius: 8px;
+      --font: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      padding: 16px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+    header p { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .mode-toggle {
+      display: flex;
+      background: var(--border);
+      border-radius: 7px;
+      padding: 3px;
+      gap: 3px;
+      margin-bottom: 14px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 7px 6px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .mode-btn.active {
+      background: var(--bg);
+      color: var(--green-darker);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(33,43,51,0.12);
+    }
+
+    .scope-toggle { display: flex; gap: 6px; margin-bottom: 10px; }
+
+    .scope-btn {
+      flex: 1;
+      padding: 7px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+
+    .scope-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .input-row label { font-size: 12px; color: var(--muted); min-width: 48px; }
+
+    input[type="range"] { flex: 1; height: 4px; accent-color: var(--accent); cursor: pointer; }
+
+    .value-badge {
+      background: var(--accent-light);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      min-width: 42px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; }
+
+    .preset-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 4px;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.15s, background 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .preset-btn:hover, .preset-btn.active {
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    .preset-label { font-size: 10px; color: var(--muted); font-weight: 500; }
+
+    /* Per-hoek */
+    .corner-preview {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .corner-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .corner-cell {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 10px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .corner-cell-label { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .corner-cell-row { display: flex; align-items: center; gap: 6px; }
+    .corner-cell input[type="range"] { flex: 1; }
+
+    .corner-value {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--green-deeper, var(--green-darker));
+      min-width: 30px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .link-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      width: 100%;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+      margin-bottom: 10px;
+      transition: all 0.15s;
+    }
+
+    .link-btn:hover { background: var(--surface); }
+    .link-btn.active { border-color: var(--green-base); color: var(--green-darker); background: var(--green-light); }
+
+    .warning {
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      border-radius: 6px;
+      padding: 9px 12px;
+      font-size: 11px;
+      color: var(--warning-text);
+      line-height: 1.5;
+      display: flex;
+      gap: 7px;
+    }
+
+    .warning-icon { flex-shrink: 0; }
+
+    .btn {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      margin-bottom: 8px;
+    }
+
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    #status {
+      margin-top: 8px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      display: none;
+      align-items: center;
+      gap: 7px;
+    }
+
+    #status.success { display: flex; background: var(--accent-light); color: var(--accent); border: 1px solid #9fe1cb; }
+    #status.error   { display: flex; background: #fdecea; color: var(--danger); border: 1px solid #f5c0bb; }
+    #status.info    { display: flex; background: #e8f0fe; color: #1a56a0; border: 1px solid #b3cdf5; }
+
+    .hint { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+    [data-mode] { display: none; }
+    [data-mode].visible { display: block; }
+  </style>
+</head>
+<body>
+
+<header>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <rect width="28" height="28" rx="7" fill="#e8f8f5"/>
+    <rect x="6" y="8" width="16" height="12" rx="4" fill="none" stroke="#66ccb5" stroke-width="2"/>
+  </svg>
+  <div>
+    <h1>Hoekradius</h1>
+    <p>Afgeronde rechthoeken uniformeren</p>
+  </div>
+</header>
+
+<!-- Modus -->
+<div class="mode-toggle">
+  <button class="mode-btn active" id="mode-uniform" onclick="setMode('uniform')">Uniforme radius</button>
+  <button class="mode-btn" id="mode-percorner" onclick="setMode('percorner')">Per hoek</button>
+</div>
+
+<!-- Scope -->
+<div class="section">
+  <div class="section-title">Bereik</div>
+  <div class="scope-toggle">
+    <button class="scope-btn active" id="scope-selection" onclick="setScope('selection')">Selectie</button>
+    <button class="scope-btn" id="scope-slide" onclick="setScope('slide')">Deze slide</button>
+    <button class="scope-btn" id="scope-all" onclick="setScope('all')">Alle slides</button>
+  </div>
+  <div class="hint" id="scope-hint">Pas alleen de geselecteerde vormen aan.</div>
+</div>
+
+<!-- ── Uniforme modus ── -->
+<div data-mode="uniform" class="visible">
+  <div class="section">
+    <div class="section-title">Hoekradius</div>
+    <div class="input-row">
+      <label>Waarde</label>
+      <input type="range" id="radius-slider" min="0" max="50" value="10" oninput="onSlider(this.value)" />
+      <span class="value-badge" id="radius-display">0.10</span>
+    </div>
+    <div class="presets">
+      <button class="preset-btn" onclick="setPreset(0)">
+        <svg width="32" height="22" viewBox="0 0 32 22"><rect x="2" y="2" width="28" height="18" rx="0" fill="none" stroke="#888" stroke-width="2"/></svg>
+        <span class="preset-label">Recht</span>
+      </button>
+      <button class="preset-btn active" onclick="setPreset(10)">
+        <svg width="32" height="22" viewBox="0 0 32 22"><rect x="2" y="2" width="28" height="18" rx="3" fill="none" stroke="#66ccb5" stroke-width="2"/></svg>
+        <span class="preset-label">Licht</span>
+      </button>
+      <button class="preset-btn" onclick="setPreset(25)">
+        <svg width="32" height="22" viewBox="0 0 32 22"><rect x="2" y="2" width="28" height="18" rx="7" fill="none" stroke="#888" stroke-width="2"/></svg>
+        <span class="preset-label">Normaal</span>
+      </button>
+      <button class="preset-btn" onclick="setPreset(50)">
+        <svg width="32" height="22" viewBox="0 0 32 22"><rect x="2" y="2" width="28" height="18" rx="9" fill="none" stroke="#888" stroke-width="2"/></svg>
+        <span class="preset-label">Max</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Per-hoek modus ── -->
+<div data-mode="percorner">
+  <div class="section">
+    <div class="section-title">Radius per hoek</div>
+
+    <div class="corner-preview">
+      <svg id="corner-preview-svg" width="160" height="96" viewBox="0 0 160 96">
+        <path id="preview-path" d="" fill="#e8f8f5" stroke="#66ccb5" stroke-width="2"/>
+      </svg>
+    </div>
+
+    <button class="link-btn" id="link-btn" onclick="toggleLink()">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+        <path d="M4.5 6.5h4M3 4.5a2 2 0 010 4h-.5a2 2 0 010-4H3M10 4.5a2 2 0 010 4h.5a2 2 0 000-4H10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+      <span id="link-label">Alle hoeken koppelen</span>
+    </button>
+
+    <div class="corner-grid">
+      <div class="corner-cell">
+        <div class="corner-cell-label">↖ Links-boven</div>
+        <div class="corner-cell-row">
+          <input type="range" min="0" max="50" value="10" id="c-tl" oninput="onCorner('tl', this.value)" />
+          <span class="corner-value" id="v-tl">0.10</span>
+        </div>
+      </div>
+      <div class="corner-cell">
+        <div class="corner-cell-label">↗ Rechts-boven</div>
+        <div class="corner-cell-row">
+          <input type="range" min="0" max="50" value="10" id="c-tr" oninput="onCorner('tr', this.value)" />
+          <span class="corner-value" id="v-tr">0.10</span>
+        </div>
+      </div>
+      <div class="corner-cell">
+        <div class="corner-cell-label">↙ Links-onder</div>
+        <div class="corner-cell-row">
+          <input type="range" min="0" max="50" value="10" id="c-bl" oninput="onCorner('bl', this.value)" />
+          <span class="corner-value" id="v-bl">0.10</span>
+        </div>
+      </div>
+      <div class="corner-cell">
+        <div class="corner-cell-label">↘ Rechts-onder</div>
+        <div class="corner-cell-row">
+          <input type="range" min="0" max="50" value="10" id="c-br" oninput="onCorner('br', this.value)" />
+          <span class="corner-value" id="v-br">0.10</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="warning">
+      <span class="warning-icon">⚠</span>
+      <span>De vorm wordt omgezet naar een <strong>vrije vorm</strong>. De gele aanpasdriehoek verdwijnt, maar kleur, lijn en schaduw blijven behouden. Gebruik <em>Uniforme radius</em> om de originele rechthoek te behouden.</span>
+    </div>
+  </div>
+</div>
+
+<!-- Acties -->
+<button class="btn btn-primary" id="btn-apply" onclick="applyRadius()">
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+    <path d="M2 7.5L6 11.5L13 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  Toepassen
+</button>
+
+<button class="btn btn-secondary" onclick="readCurrentRadius()">
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+    <circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M7.5 5v3M7.5 10v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>
+  Huidige radius uitlezen
+</button>
+
+<div id="status"></div>
+
+<script src="taskpane.js"></script>
+</body>
+</html>
